@@ -1,5 +1,7 @@
-# Spring boot and React js fullstack application.
+# Spring boot and React js fullstack application Part(1/2).
 How to create a full stack application with Spring boot and React js, with web-pack and babel
+
+### Show some :heart: and :star: the repo to support the project 
 
 I like explaining things in code so without wasting much of your time lets just jump straight in and i will be explaining as we go.
 
@@ -13,7 +15,7 @@ You also need to add a couple of dependencies which are
 * thymeleaf - A modern server-side Java template engine
 * WEB - Build web, including RESTful, applications using Spring MVC
 * H2 - Provides a volatile in-memory database
-* Lombok - Java annotation library which helps reduce boilierplate code
+* Lombok - Java annotation library which helps reduce boilerplate code
 
 ## 2. Rest API Service
 Now lets create the REST API service for the backend application which will be able to perform basic **CRUD** (Create, Read, Update ,Delete) functionality.
@@ -286,7 +288,7 @@ server.error.include-stacktrace=never
 ```
 ### f. REST API TESTING(JPA UNIT TESTING)
 Now that everything is setup its time for the truth to be reviewed. I like to do things differently so instead of testing our API using Postman im going to do JPA Unit testing.
-If you are familiar with Unit Testing feel free to test with Postman or jump to next section **(INTEGRATING REACTJS)**
+If you are familiar with JPA Unit Testing feel free to test with Postman or jump to next section **(INTEGRATING REACTJS)**
 
 Now to get things started quickly install JPA Unit testing dependency in your pom.xml file.
 
@@ -298,7 +300,7 @@ Now to get things started quickly install JPA Unit testing dependency in your po
     <scope>test</scope>
 </dependency>
 ```
-In your test/java/com.<applicatio-name/ create a file UserTests with the following testing code:
+In your **test/java/com.<application-name>/** create a file class UserTests with the following testing code:
 
 ```java
 package com.datsystemz.nyakaz.springbootreactjsfullstack;
@@ -392,3 +394,289 @@ If everything runs well you should have an output similar to this
 ```
 * **NB** At this point of your test runs successfully congratulations you have made it :) . Now you can jump in to the next section ie **(INTEGRATING REACTJS)** 
 
+## 3. INTEGRATING REACTJS
+
+Now lets jump in to the frontend of things of our fullstack application. 
+
+In this section i am assuming you have already installed **nodejs** in your working environment. If not just quickly install link can be found [here](https://nodejs.org/en/)
+
+We are not going to use npm create-react-app <app-name> to create our frontend since we dont want to separately run the react js application with its own proxy port usually port 3000.
+We want our Spring backend application to be able to **serve** the front at its default port 8080, that way we get to experience the **fullstack** of things without having to separately running two instances servers for our front end and backend application.
+
+Now you can prepare the react js project structure by creating these folders in your **root folder** of your application.
+
+```cmd
+$ mkdir -p ./frontend/src/{components,actions,reducers}
+```
+The above command will create a folder structure that look like this:
+```cmd
+frontend/
+  src/
+    actions/
+    components/
+    reducers/
+  
+```
+This is were your react frontend application is going to seat in.
+
+### 3a Installing packages
+
+We now need to create a package.json file which will have all your dependencies that is going to be used by  reactjs framework. 
+To create the package.json file just run
+```cmd
+$ npm init -y
+```
+Since you have already installed node this npm command should run just fine, and you now should be able to see the package.json file in your root folder of your project.
+
+Now at this point you now need to install the following Dev Dependencies and Dependencies for your react .
+
+```cmd
+$ npm i -D webpack webpack-cli
+$ npm i -D babel-loader @babel/core @babel/preset-env @babel/preset-react @babel/plugin-proposal-class-properties
+$ npm i -D sass-loader css-loader
+$ npm i react react-dom react-router-dom
+$ npm i redux react-redux redux-thunk redux-devtools-extension
+$ npm i redux-form
+$ npm i axios
+$ npm i lodash
+```
+This will install the Dev Dependencies required by react js .
+* webpack - will bundle Javascript files for usage in a browser
+* babel - is a transpiler ie a Javascript  compiler used to convert ECMAScript 2015+ code into a backwards compatible version of Javascript in current and older browser environments.
+* react - Javascript library for building user interfaces. Developed by facebook
+* redux - The is a predictable state container for Js apps
+* axios - Promise based HTTP client
+* lodash(optional) - Lodash is a reference library made with JavaScript.
+
+### 3b. Webpack Configuration
+
+Add a file name webpack.config.js to the root directory  and configure webpack:
+
+```js
+var path = require('path');
+
+module.exports = {
+    entry: './src/main/js/App.js',
+    devtool: 'sourcemaps',
+    cache: true,
+    mode: 'development',
+    output: {
+        path: __dirname,
+        filename: './src/main/resources/static/built/bundle.js'
+    },
+    module: {
+        rules: [
+            {
+                test: path.join(__dirname, '.'),
+                exclude: /(node_modules)/,
+                use: [{
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ["@babel/preset-env", "@babel/preset-react"]
+                    }
+                }]
+            },
+            {
+                test: /\.css$/,
+                use: [
+                    'style-loader',
+                    'css-loader'
+                ]
+            },
+            {
+                test: /\.(png|svg|jpg|gif|eot|otf|ttf|woff|woff2)$/,
+                use: [
+                    {
+                        loader: 'url-loader',
+                        options: {}
+                    }
+                ]
+            }
+        ]
+    }
+};
+```
+"""Quote Spring Docs"""
+This webpack configuration file:
+
+* Defines the entry point as ./src/main/js/App.js. In essence, App.js (a module you will write shortly) is the proverbial public static void main() of our JavaScript application. webpack must know this in order to know what to launch when the final bundle is loaded by the browser.
+
+* Creates sourcemaps so that, when you are debugging JS code in the browser, you can link back to original source code.
+
+* Compile ALL of the JavaScript bits into ./src/main/resources/static/built/bundle.js, which is a JavaScript equivalent to a Spring Boot uber JAR. All your custom code AND the modules pulled in by the require() calls are stuffed into this file.
+
+* It hooks into the babel engine, using both es2015 and react presets, in order to compile ES6 React code into a format able to be run in any standard browser.
+
+With this webpack configuration file setup we now need to create a couple of directories
+
+### 3c. React boiler plate Setup
+1. Notice how the above webpack is referencing to ./src/main/js/App.js . Let create a js folder in main and an App.js file inside 
+The App.js file should have this following code:
+```typescript jsx
+import React, { Component } from "react";
+import ReactDOM from "react-dom";
+
+
+export class App extends Component {
+    render() {
+        return (
+            <div>
+                <h1>Welcome to React Front End Served by Spring Boot</h1>
+            </div>
+        );
+    }
+}
+
+export default App;
+
+ReactDOM.render(<App />, document.querySelector("#app"));
+
+```
+2. Now we now need to prepare the html that will render the App.js we just created in Spring
+
+Remember the Thymeleaf dependency we installed at the beginning in the Spring Initializer it time to get that to use
+To get started  you need to create an index page in **src/main/resources/templates/index.html**
+
+```html
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<head lang="en">
+    <meta charset="UTF-8"/>
+    <title>ReactJS + Spring Data REST</title>
+    <link rel="stylesheet" href="/main.css" />
+</head>
+<body>
+
+    <div id="app"></div>
+
+    <script src="built/bundle.js"></script>
+
+</body>
+</html>
+```
+The key part in this template is the <div id="app"></div> component in the middle. It is where you will direct React to plug in the rendered output.
+
+The bundle.js will automatically generated when we run our application.
+
+Spring will automatically know that the main.css file will be created under the static folder in your resources folder so go ahead and create it will use it later.
+
+With that set up you should have the Final project structure now looking to something like this:
+
+```cmd
+- frontend
+- sample-project-root
+    - src
+        - main
+            -java
+            - js
+                App.js
+                index.js
+            - static
+                main.css
+            - resources
+                - templates
+                    index.html
+ webpack.config.js
+ package.json
+ pom.xml
+```
+If this is you project string you are good to go and now left with one last step to test this out.
+
+### 3c. Script Setup in package.json
+In the package.json file we need to finally replace the script tag with the following
+
+```json
+ ...
+ ...
+"scripts": {
+    "watch": "webpack --watch -d --output ./target/classes/static/built/bundle.js"
+  },
+
+...
+...
+```
+This will run the webpack and tell it to render the output (bundle.js) to ./taget/classes/static/built/ folder.
+The --watch tag will tell the webpack to constantly watch for changes in our code so that when there is such it will update the bundle.js file.
+
+### 3d. Final Setup Step 
+Remember when we create our UserController it had a @RestController annotation to serve the rest methods in that class.
+If can still recall we said the @RestController tells Spring that the data returned by each method will be written straight into the response  body instead of rendering a template.
+Now we need an endpoint that will render a template. S
+So lets create a separate class in our controllers called WebMainController which will render the index page of our react App.js main component.
+
+```java
+package com.datsystemz.com.microfinancedatsystemz.controllers;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+public class WebMainController {
+
+    @RequestMapping(value = "/")
+    public String index() {
+        return "index";
+    }
+}
+
+```
+
+## 4. FINAL TEST
+Now lets test the full stack application
+First run your server 
+```cmd
+$ mvn spring-boot:run
+```
+If there are no error you are good it means we haven't messed anything up since our last JUNIT TESTS.
+Finally transpile your react app by running:
+```cmd
+$ npm run-script watch
+```
+Now you can go to you browser http://localhost:8080/ and if this appears on your browser:
+
+# Welcome to React Front End Served by Spring Boot
+
+Then you have successfully integrated react js and spring boot. Full stack application. If you make changes in your app webpack should be able to update those changes, and all you have to do is to restart your browser.
+
+I know this was a long tutorial I will make it in parts and will create a Part 2 of this as soon as i can . So that you will now Learn React.
+
+Thank you for taking your time in reading this article.
+
+!!END
+
+### Pull Requests
+I Welcome and i encourage all Pull Requests
+
+## Created and Maintained by
+* Author: [Tafadzwa Lameck Nyamukapa](https://github.com/nyakaz73) :
+* Email:  [tafadzwalnyamukapa@gmail.com]
+* Open for any collaborations and Remote Work!!
+* Happy Coding!!
+
+### License
+
+```
+MIT License
+
+Copyright (c) 2020 Tafadzwa Lameck Nyamukapa
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+```
