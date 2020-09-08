@@ -18,6 +18,7 @@ You also need to add a couple of dependencies which are
 ## 2. Rest API Service
 Now lets create the REST API service for the backend application which will be able to perform basic **CRUD** (Create, Read, Update ,Delete) functionality.
 
+### a. models
 First create a package name models. 
 Inside models create class User for your user model. See code below
 
@@ -141,3 +142,124 @@ In the above snippet you will notice we have added a couple of annotations
 @Data - is a convenient shortcut that bundles features of @toString, @EqualsAndHashCode, @Getter / @Setter and @RequiredArgsConstructor .
 @NoArgsConstructor provides the  default construct
 @AllArgsConstructor bundles the non default constructor.
+
+### b. repositories
+Lets create a repositories package will an interface called UserRepository. The interface extends the Jpa repository so that we can have all methods that is provided by the JpaRepository that allows us to  query our database.
+```java
+package com.datsystemz.nyakaz.springbootreactjsfullstack.repositories;
+
+import com.datsystemz.nyakaz.springbootreactjsfullstack.models.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User,Long> {
+}
+
+```
+### c. controllers
+
+Now that you got you repository setup its time to create a controllers package and with a class called UserController. 
+The is where the REST service with Spring begins. The controller will save all end points of our user controller, which will then be consumed by the outside world.
+All the action feature required by our CRUD app are going to seat here ie GET, POST, PUT and DELETE actions. See code below
+
+```java
+package com.datsystemz.nyakaz.springbootreactjsfullstack.controllers;
+
+import com.datsystemz.nyakaz.springbootreactjsfullstack.exceptions.ResourceNotFoundException;
+import com.datsystemz.nyakaz.springbootreactjsfullstack.models.User;
+import com.datsystemz.nyakaz.springbootreactjsfullstack.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+public class UserController {
+    private UserRepository userRepository;
+
+    @Autowired
+    public UserController(UserRepository userRepository){
+        this.userRepository = userRepository;
+    }
+
+    @PostMapping("/user/save")
+    public User saveUser(@RequestBody User user){
+        return this.userRepository.save(user);
+    }
+
+    @GetMapping("/user/all")
+    public ResponseEntity<List<User>> getUsers(){
+        return ResponseEntity.ok(
+          this.userRepository.findAll()
+        );
+    }
+    
+    @GetMapping("/user/{id}")
+    public ResponseEntity<User> getUser(@PathVariable(value = "id" ) Long id){
+        User user = this.userRepository.findById(id).orElseThrow(
+                ()-> new ResourceNotFoundException("User not found")
+        );
+
+        return  ResponseEntity.ok().body(user);
+    }
+    
+    @PutMapping("user/{id}")
+    public User updateUser(@RequestBody User newUser, @PathVariable(value = "id") Long id){
+        return this.userRepository.findById(id)
+                .map(user -> {
+                    user.setName(newUser.getName());
+                    user.setSurname(newUser.getSurname());
+                    user.setEmail(newUser.getEmail());
+                    user.setUsername(newUser.getUsername());
+                    user.setPassword(newUser.getPassword());
+                    return this.userRepository.save(user);
+                })
+                .orElseGet(()->{
+                   newUser.setId(id);
+                   return this.userRepository.save(newUser);
+                });
+    }
+
+    @DeleteMapping("user/{id}")
+    public ResponseEntity<Void> removeUser(@PathVariable(value = "id") Long id){
+        User user =this.userRepository.findById(id).orElseThrow(
+                ()-> new ResourceNotFoundException("User not found"+id)
+        );
+
+        this.userRepository.delete(user);
+        return ResponseEntity.ok().build();
+    }
+
+
+
+
+}
+
+```
+In the above code the class is annotated with @RestController telling Spring that the data returned by each method will be written straight into the response  body instead of rendering a template.
+The UserRepository is injected by constructor into the controller. The @Autowired enable automatic dependency injection.
+
+The @PostMapping , @GetMapping, @PutMapping and @DeleteMapping corresponds to the POST, GET, UPDATE and DELETE actions. 
+One thing to note here is the @DeleteMapping and @GetMapping which is calling a ResourceNotFoundException class that will output the runtime exception.
+
+Lets quickly implement the ResourceNotFoundException class. 
+
+### d. exceptions
+I like to keep my code clean and packaged. So just quickly create a package called exceptions with a class ResourceNotFoundException. See code below:
+
+```java
+package com.datsystemz.nyakaz.springbootreactjsfullstack.exceptions;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(value =  HttpStatus.NOT_FOUND)
+public class ResourceNotFoundException extends RuntimeException{
+    public  ResourceNotFoundException(String message){
+        super(message);
+    }
+}
+
+```
+The above class extends the RuntimeException which will give us access to all methods that are in that class. In this case just call super in the constructor with  message variable. 
+That's it .,now whenever a user is not found it will return the run time exception with user not Found message and status of HttpStatus.NOT_FOUND.
