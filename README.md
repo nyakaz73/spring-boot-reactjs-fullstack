@@ -20,4 +20,124 @@ Now lets create the REST API service for the backend application which will be a
 
 First create a package name models. 
 Inside models create class User for your user model. See code below
-https://gist.github.com/nyakaz73/b67b3981145fc7a0f7c0038f0d77db2c
+
+```java
+
+package com.datsystemz.nyakaz.springbootreactjsfullstack.models;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    private String name;
+    private String surname;
+    private String email;
+    private String username;
+    private String password;
+
+    protected User(){}
+
+    public User(String name, String surname, String email, String username, String password){
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
+        this.username = username;
+        this.password = password;
+    }
+
+    public Long getId(){
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getSurname() {
+        return surname;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+
+
+```
+
+First you will notice the @Entity annotation- this tell Spring that it is a JPA entity and it is mapped to table named User. If you want to the the table name you will have to annotate it with @Table(name = "new_table_name_here")
+You probably noticed that this is too much of code to create an entity not to worry, Remember the Lambok dependancy this is the best time to use it since it offers a functionality of writing code with less boiler plate of code.
+
+```java
+package com.datsystemz.nyakaz.springbootreactjsfullstack.models;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    private String name;
+    private String surname;
+    private String email;
+    private String username;
+    private String password;
+
+
+}
+```
+In the above snippet you will notice we have added a couple of annotations
+@Data - is a convenient shortcut that bundles features of @toString, @EqualsAndHashCode, @Getter / @Setter and @RequiredArgsConstructor .
+@NoArgsConstructor provides the  default construct
+@AllArgsConstructor bundles the non default constructor.
