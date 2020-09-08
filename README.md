@@ -263,3 +263,132 @@ public class ResourceNotFoundException extends RuntimeException{
 ```
 The above class extends the RuntimeException which will give us access to all methods that are in that class. In this case just call super in the constructor with  message variable. 
 That's it .,now whenever a user is not found it will return the run time exception with user not Found message and status of HttpStatus.NOT_FOUND.
+### e. database
+
+* **NB** Since we have added the H2 in -memory DB . Spring automatically runs it whenever there is persistence to the db. Please note that H2 Database is volatile meaning it will be automatically be created when the server ran and whenever you stop the server it will tear down the db and its contents.
+By default, Spring Boot configures the application to connect to an in-memory store with the username sa and an empty password. However, we can change those parameters by adding the following properties to the application.properties file:
+
+```properties
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+# Enabling H2 Console
+spring.h2.console.enabled=true
+
+# Custom H2 Console URL
+spring.h2.console.path=/h2
+# Whether to enable remote access.
+spring.h2.console.settings.web-allow-others=true
+
+server.error.include-stacktrace=never
+```
+### f. REST API TESTING(JPA UNIT TESTING)
+Now that everything is setup its time for the truth to be reviewed. I like to do things differently so instead of testing our API using Postman im going to do JPA Unit testing.
+If you are familiar with Unit Testing feel free to test with Postman or jump to next section **(INTEGRATING REACTJS)**
+
+Now to get things started quickly install JPA Unit testing dependency in your pom.xml file.
+
+```xml
+
+<dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+In your test/java/com.<applicatio-name/ create a file UserTests with the following testing code:
+
+```java
+package com.datsystemz.nyakaz.springbootreactjsfullstack;
+
+import com.datsystemz.nyakaz.springbootreactjsfullstack.models.User;
+import com.datsystemz.nyakaz.springbootreactjsfullstack.repositories.UserRepository;
+import org.junit.Assert;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+
+@DataJpaTest
+public class UserTests {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Test
+    public void testSaveUser(){
+        User user = new User("John","Doe","john.doe@email.com","johhny","strong-password");
+        userRepository.save(user);
+        userRepository.findById(new Long(1))
+                .map(newUser ->{
+                    Assert.assertEquals("John",newUser.getName());
+                    return true;
+                });
+    }
+
+    @Test
+    public void getUser(){
+        User user = new User("John","Doe","john.doe@email.com","johhny","strong-password");
+        User user2 = new User("Daniel","Marcus","daniel@daniel.com","danie","super_strong_password");
+        userRepository.save(user);
+
+        userRepository.save(user2);
+
+        userRepository.findById(new Long(1))
+                .map(newUser ->{
+                   Assert.assertEquals("danie",newUser.getUsername());
+                   return true;
+                });
+
+    }
+
+    @Test
+    public void getUsers(){
+        User user = new User("John","Doe","john.doe@email.com","johhny","strong-password");
+        User user2 = new User("Daniel","Marcus","daniel@daniel.com","danie","super_strong_password");
+        userRepository.save(user);
+        userRepository.save(user2);
+
+        Assert.assertNotNull(userRepository.findAll());
+    }
+
+    @Test
+    public void deleteUser(){
+        User user = new User("John","Doe","john.doe@email.com","johhny","strong-password");
+        userRepository.save(user);
+        userRepository.delete(user);
+        Assert.assertTrue(userRepository.findAll().isEmpty());
+    }
+
+
+}
+```
+The @DataJpaTest tells Spring to test the persistence layer components that will autoconfigure in-memory embedded  H2 database and scan for @Entity classes and Spring Data JPA repositories.
+We need to autowire the UserRepository so that we will have functions provided by the JPA to be able to query our DB.
+Spring will look for function annotated with @Test. The JUNIT ASSERT i going to assert most of the tests.
+
+In your terminal You can now run :
+
+```cmd
+mvn test
+```
+If everything runs well you should have an output similar to this
+
+```
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 11.845 s
+[INFO] Finished at: 2020-09-08T19:01:25+02:00
+[INFO] Final Memory: 32M/370M
+[INFO] ------------------------------------------------------------------------
+```
+* **NB** At this point of your test runs successfully congratulations you have made it :) . Now you can jump in to the next section ie **(INTEGRATING REACTJS)** 
+
