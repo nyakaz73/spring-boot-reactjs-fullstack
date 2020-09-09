@@ -471,7 +471,7 @@ Add a file name .babelrc to the root directory and configure babel:
 ```
 
 
-### 3b. Webpack Configuration
+### 3c. Webpack Configuration
 
 Add a file named webpack.config.js to the root directory  and configure webpack:
 
@@ -532,7 +532,7 @@ This webpack configuration file:
 
 With this webpack configuration file setup we now need to create a couple of directories
 
-### 3c. React boiler plate Setup
+### 3d. React boiler plate Setup
 1. Notice how the above webpack is referencing to ./src/main/js/App.js . Let create a js folder in main and an App.js file inside 
 The App.js file should have this following code:
 ```typescript jsx
@@ -621,7 +621,7 @@ In the package.json file we need to finally replace the script tag with the foll
 This will run the webpack and tell it to render the output (bundle.js) to ./taget/classes/static/built/ folder.
 The --watch tag will tell the webpack to constantly watch for changes in our code so that when there is such it will update the bundle.js file.
 
-### 3d. Final Setup Step 
+### 3e. Final Setup Step 
 Remember when we create our UserController it had a @RestController annotation to serve the rest methods in that class.
 If can still recall we said the @RestController tells Spring that the data returned by each method will be written straight into the response  body instead of rendering a template.
 Now we need an endpoint that will render a template. S
