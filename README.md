@@ -605,7 +605,7 @@ With that set up you should have the Final project structure now looking to some
 ```
 If this is you project string you are good to go and now left with one last step to test this out.
 
-### 3c. Script Setup in package.json
+### 3e. Script Setup in package.json
 In the package.json file we need to finally replace the script tag with the following
 
 ```json
@@ -621,7 +621,7 @@ In the package.json file we need to finally replace the script tag with the foll
 This will run the webpack and tell it to render the output (bundle.js) to ./taget/classes/static/built/ folder.
 The --watch tag will tell the webpack to constantly watch for changes in our code so that when there is such it will update the bundle.js file.
 
-### 3e. Final Setup Step 
+### 3f. Final Setup Step 
 Remember when we create our UserController it had a @RestController annotation to serve the rest methods in that class.
 If can still recall we said the @RestController tells Spring that the data returned by each method will be written straight into the response  body instead of rendering a template.
 Now we need an endpoint that will render a template. S
