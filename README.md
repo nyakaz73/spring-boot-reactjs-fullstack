@@ -448,9 +448,32 @@ This will install the Dev Dependencies required by react js .
 * axios - Promise based HTTP client
 * lodash(optional) - Lodash is a reference library made with JavaScript.
 
+### 3b Babel Configuration
+Add a file name .babelrc to the root directory and configure babel:
+
+```
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "node": "current"
+        },
+        "useBuiltIns": "usage",
+        "corejs": 3
+      }
+    ],
+    "@babel/preset-react"
+  ],
+  "plugins": ["@babel/plugin-proposal-class-properties"]
+}
+```
+
+
 ### 3b. Webpack Configuration
 
-Add a file name webpack.config.js to the root directory  and configure webpack:
+Add a file named webpack.config.js to the root directory  and configure webpack:
 
 ```js
 var path = require('path');
